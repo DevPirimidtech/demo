@@ -29,6 +29,7 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+
       - name: Run unit and integration tests
         run: ./gradlew test
 
