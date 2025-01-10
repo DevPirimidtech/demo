@@ -1,0 +1,57 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Run unit and integration tests
+        run: ./gradlew test
+
+      - name: Preview Liquibase SQL
+        id: liquibase_preview
+        run: |
+          ./gradlew updateSQL --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml" > liquibase_sql_preview.txt
+          echo "Preview the SQL changes."
+          cat liquibase_sql_preview.txt
+
+      - name: Liquibase Approval - Manual Input
+        id: approval
+        run: |
+          echo "Do you approve the changes to apply to the database? (yes/no)"
+          read APPROVAL
+          if [[ "$APPROVAL" != "yes" ]]; then
+            echo "Approval denied. Stopping deployment."
+            exit 1
+          fi
+          echo "Approval granted. Proceeding with database updates."
+
+      - name: Apply Liquibase Changes
+        if: steps.approval.outputs.result == 'yes'
+        run: |
+          echo "Applying Liquibase changes to the database."
+          ./gradlew update

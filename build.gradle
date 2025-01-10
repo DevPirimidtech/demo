@@ -1,0 +1,66 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.1'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.liquibase.gradle' version '2.2.0' // Apply Liquibase plugin
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+//	implementation 'org.liquibase:liquibase-core'
+	  liquibaseRuntime 'org.liquibase:liquibase-core:4.19.0'
+
+  // Add the appropriate JDBC driver for your database
+  liquibaseRuntime 'org.postgresql:postgresql'
+
+  // Required for Liquibase CLI integration
+  liquibaseRuntime 'info.picocli:picocli:4.6.3'
+
+  // Optional: Logging support (if needed)
+  liquibaseRuntime 'org.slf4j:slf4j-api:2.0.9'
+  liquibaseRuntime 'org.slf4j:slf4j-simple:2.0.9'
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly 'org.postgresql:postgresql'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+
+liquibase {
+  activities {
+     main {
+        changelogFile 'src/main/resources/db/changelog/db.changelog-master.xml'
+        url 'jdbc:postgresql://localhost:5432/demo1'
+        username 'postgres'
+        password 'root'
+        driver 'org.postgresql.Driver'
+     }
+  }
+  runList = 'main'
+}
