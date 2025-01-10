@@ -75,5 +75,5 @@ jobs:
       - name: Apply Liquibase Changes
         if: steps.approval.outputs.result == 'yes'
         run: |
-          echo "Applying Liquibase changes to the database. "
+          echo "Applying Liquibase changes to the database."
           ./gradlew update
