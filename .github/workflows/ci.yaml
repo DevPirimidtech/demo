@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -6,16 +6,15 @@ on:
       - main
 
 jobs:
-  build-and-update-db:
+  build:
     runs-on: ubuntu-latest
-
     services:
       postgres:
-        image: postgres:15.4
+        image: postgres:13
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: demo_cicd
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: demo1
         ports:
           - 5433:5432
         options: >-
@@ -23,10 +22,9 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     steps:
-      # Step 1: Checkout the code
-      - name: Checkout code
+      # Step 1: Check out the code
+      - name: Check out code
         uses: actions/checkout@v3
 
       # Step 2: Set up JDK
@@ -36,139 +34,52 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Step 3: Set Gradle permissions and cache Gradle dependencies
-      - name: Set Gradle permissions
+      # Step 3a: Set executable permission for gradlew
+      - name: Set Gradlew Permissions
         run: chmod +x ./gradlew
 
-      - name: Cache Gradle dependencies
+      # Step 3b: Set up gradle cache
+      - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle') }}
-          restore-keys: gradle-${{ runner.os }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
 
-      # Step 4: Build the application
-      - name: Build the application
+      # Step 4: Build the application with Gradle
+      - name: Build Application
         run: ./gradlew clean build --info
+        id: build
 
-      # Step 5: Set environment variables for DB connection
-      - name: Set Environment Variables
+      - name: Run unit and integration tests
+        run: ./gradlew test
+
+      - name: Preview Liquibase SQL
+        id: liquibase_preview
         run: |
-          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/demo_cicd" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_USERNAME=postgres" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_PASSWORD=postgres" >> $GITHUB_ENV
+          ./gradlew updateSQL --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml" > liquibase_sql_preview.txt
+          echo "Preview the SQL changes."
+          cat liquibase_sql_preview.txt
 
-      # Step 6: Preview Liquibase SQL changes
-      - name: Preview Liquibase SQL changes
-        run: ./gradlew updateSQL --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml" > liquibase_sql_preview.txt
-        continue-on-error: true
+      - name: Set Gradlew Permissions
+        run: chmod +x ./gradlew
 
-      - name: Display Liquibase SQL preview
-        run: cat liquibase_sql_preview.txt
+      - name: Apply Liquibase Changes
+        run: ./gradlew update
 
-      # Step 7: Apply Liquibase changes to the database
-      - name: Apply Liquibase changes
-        run: ./gradlew update --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#name: CI Pipeline
-#
-#on:
-#  push:
-#    branches:
-#      - main
-#
-#jobs:
-#  build:
-#    runs-on: ubuntu-latest
-##    services:
-##      postgres:
-##        image: postgres:13
-##        env:
-##          POSTGRES_USER: postgres
-##          POSTGRES_PASSWORD: root
-##          POSTGRES_DB: demo1
-##        ports:
-##          - 5432:5432
-##        options: >-
-##          --health-cmd="pg_isready -U postgres"
-##          --health-interval=10s
-##          --health-timeout=5s
-##          --health-retries=5
-#    steps:
-#      # Step 1: Check out the code
-#      - name: Check out code
-#        uses: actions/checkout@v3
-#
-#      # Step 2: Set up JDK
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v3
-#        with:
-#          java-version: '17'
-#          distribution: 'temurin'
-#
-#      # Step 3a: Set executable permission for gradlew
-#      - name: Set Gradlew Permissions
-#        run: chmod +x ./gradlew
-#
-#      # Step 3b: Set up gradle cache
-#      - name: Cache Gradle packages
-#        uses: actions/cache@v4
-#        with:
-#          path: ~/.gradle/caches
-#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-#          restore-keys: ${{ runner.os }}-gradle
-#
-#      # Step 4: Build the application with Gradle
-#      - name: Build Application
-#        run: ./gradlew clean build --info
-#        id: build
-#
-#      - name: Run unit and integration tests
-#        run: ./gradlew test
-#
-#      - name: Preview Liquibase SQL
-#        id: liquibase_preview
+#      - name: Liquibase Approval - Manual Input
+#        id: approval
 #        run: |
-#          ./gradlew updateSQL --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml" > liquibase_sql_preview.txt
-#          echo "Preview the SQL changes."
-#          cat liquibase_sql_preview.txt
-#
-#      - name: Set Gradlew Permissions
-#        run: chmod +x ./gradlew
+#          echo "Do you approve the changes to apply to the database? (yes/no)"
+#          read APPROVAL
+#          if [[ "$APPROVAL" != "yes" ]]; then
+#            echo "Approval denied. Stopping deployment."
+#            exit 1
+#          fi
+#          echo "Approval granted. Proceeding with database updates."
 #
 #      - name: Apply Liquibase Changes
-#        run: ./gradlew update
-#
-##      - name: Liquibase Approval - Manual Input
-##        id: approval
-##        run: |
-##          echo "Do you approve the changes to apply to the database? (yes/no)"
-##          read APPROVAL
-##          if [[ "$APPROVAL" != "yes" ]]; then
-##            echo "Approval denied. Stopping deployment."
-##            exit 1
-##          fi
-##          echo "Approval granted. Proceeding with database updates."
-##
-##      - name: Apply Liquibase Changes
-##        if: steps.approval.outputs.result == 'yes'
-##        run: |
-##          echo "Applying Liquibase changes to the database."
-##          ./gradlew update
+#        if: steps.approval.outputs.result == 'yes'
+#        run: |
+#          echo "Applying Liquibase changes to the database."
+#          ./gradlew update
