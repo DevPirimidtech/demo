@@ -46,7 +46,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      # Step 4: Build the application
+      # Step 4: Build the application with Gradle
       - name: Build Application
         run: ./gradlew clean build --info
         id: build
