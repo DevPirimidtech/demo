@@ -33,13 +33,6 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      # Step 4: Set environment variables for database connection
-      - name: Set Environment Variables
-        run: |
-          echo "SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5433/demo_cicd" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_USERNAME=postgres" >> $GITHUB_ENV
-          echo "SPRING_DATASOURCE_PASSWORD=postgres" >> $GITHUB_ENV
-
       # Step 5: Build the application with Gradle
       - name: Build Application
         run: ./gradlew clean build --info
