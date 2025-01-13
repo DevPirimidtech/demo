@@ -12,7 +12,6 @@ jobs:
     services:
       postgres:
         image: postgres:15.4
-        container_name: demo_cicd
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -26,7 +25,7 @@ jobs:
           --health-retries=5
 
     steps:
-      # Step 1: Check out the code
+      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v3
 
