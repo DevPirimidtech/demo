@@ -42,13 +42,13 @@ jobs:
 #      - name: Run unit and integration tests
 #        run: ./gradlew test
 #
-#      # Step 7: Preview Liquibase SQL
-#      - name: Preview Liquibase SQL
-#        id: liquibase_preview
-#        run: |
-#          ./gradlew updateSQL --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml" > liquibase_sql_preview.txt
-#          echo "Preview the SQL changes."
-#          cat liquibase_sql_preview.txt
+#       Step 7: Preview Liquibase SQL
+      - name: Preview Liquibase SQL
+        id: liquibase_preview
+        run: |
+          ./gradlew updateSQL --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml" > liquibase_sql_preview.txt
+          echo "Preview the SQL changes."
+          cat liquibase_sql_preview.txt
 #
 #      # Step 8: Apply Liquibase Changes
 #      - name: Apply Liquibase Changes
