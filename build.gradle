@@ -56,9 +56,9 @@ liquibase {
   activities {
      main {
         changelogFile 'src/main/resources/db/changelog/db.changelog-master.xml'
-        url 'jdbc:postgresql://localhost:5432/demo1'
+        url 'jdbc:postgresql://localhost:5433/demo_cicd'
         username 'postgres'
-        password 'root'
+        password 'postgres'
         driver 'org.postgresql.Driver'
      }
   }

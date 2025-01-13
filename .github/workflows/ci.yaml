@@ -8,20 +8,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: root
-          POSTGRES_DB: demo1
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+#    services:
+#      postgres:
+#        image: postgres:13
+#        env:
+#          POSTGRES_USER: postgres
+#          POSTGRES_PASSWORD: root
+#          POSTGRES_DB: demo1
+#        ports:
+#          - 5432:5432
+#        options: >-
+#          --health-cmd="pg_isready -U postgres"
+#          --health-interval=10s
+#          --health-timeout=5s
+#          --health-retries=5
     steps:
       # Step 1: Check out the code
       - name: Check out code
@@ -60,6 +60,12 @@ jobs:
           ./gradlew updateSQL --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml" > liquibase_sql_preview.txt
           echo "Preview the SQL changes."
           cat liquibase_sql_preview.txt
+
+      - name: Set Gradlew Permissions
+        run: chmod +x ./gradlew
+
+      - name: Apply Liquibase Changes
+        run: ./gradlew update
 
 #      - name: Liquibase Approval - Manual Input
 #        id: approval
