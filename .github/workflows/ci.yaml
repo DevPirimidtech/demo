@@ -61,6 +61,11 @@ jobs:
           echo "Preview the SQL changes."
           cat liquibase_sql_preview.txt
 
+      - name: Validate Liquibase Changelog
+        id: liquibase_validate
+        run: |
+          ./gradlew validate --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml"
+
 #      - name: Set Gradlew Permissions
 #        run: chmod +x ./gradlew
 #
