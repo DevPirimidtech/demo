@@ -1,21 +1,5 @@
 name: CI Pipeline with Manual Trigger
 
-on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: "Deployment environment"
-        required: true
-        default: "development"
-        type: choice
-        options:
-          - development
-          - staging
-          - production
-      version:
-        description: "Version to deploy (e.g., 1.0.0)"
-        required: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
