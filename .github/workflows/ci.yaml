@@ -6,14 +6,14 @@ on:
       - main
   workflow_dispatch:
     inputs:
-      approve_changes:
-        description: "Approve Liquibase changes to apply to the database?"
+      approval:
+        description: "Approve Liquibase changes?"
         required: true
         default: "no"
         type: choice
         options:
-          - yes
-          - no
+          - "yes"
+          - "no"
 
 jobs:
   build:
@@ -32,20 +32,23 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     steps:
+      # Step 1: Check out the code
       - name: Check out code
         uses: actions/checkout@v3
 
+      # Step 2: Set up JDK
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
+      # Step 3a: Set executable permission for gradlew
       - name: Set Gradlew Permissions
         run: chmod +x ./gradlew
 
+      # Step 3b: Set up gradle cache
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
@@ -53,30 +56,46 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
+      # Step 4: Build the application with Gradle
       - name: Build Application
         run: ./gradlew clean build --info
+        id: build
 
       - name: Run unit and integration tests
         run: ./gradlew test
 
       - name: Preview Liquibase SQL
+        id: liquibase_preview
         run: |
           ./gradlew updateSQL --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml" > liquibase_sql_preview.txt
           echo "Preview the SQL changes."
           cat liquibase_sql_preview.txt
 
       - name: Validate Liquibase Changelog
+        id: liquibase_validate
         run: |
           ./gradlew validate --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml"
 
-      - name: Check Approval
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.approve_changes == 'no' }}
+  approval:
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.approval == 'yes' || github.event.inputs.approval == 'no' }}
+    steps:
+      - name: Manual Approval Check
         run: |
-          echo "Changes not approved. Stopping deployment."
-          exit 1
+          if [ "${{ github.event.inputs.approval }}" == "no" ]; then
+            echo "Approval not granted. Failing the build."
+            exit 1
+          fi
+          echo "Approval granted. Proceeding to apply changes."
+
+  applyLiquibaseChanges:
+    needs: approval
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.approval == 'yes' }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
 
       - name: Apply Liquibase Changes
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.approve_changes == 'yes' || github.event_name == 'push' }}
-        run: |
-          echo "Applying Liquibase changes to the database."
-          ./gradlew update
+        run: ./gradlew update --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml"
