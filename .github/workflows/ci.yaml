@@ -97,5 +97,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Set Gradlew Permissions
+        run: chmod +x ./gradlew
+
       - name: Apply Liquibase Changes
         run: ./gradlew update --args="--changeLogFile=${{ env.CHANGELOG_FILE }}"
