@@ -70,13 +70,13 @@ jobs:
           ./gradlew validate --args="--changeLogFile=src/main/resources/db/changelog/db.changelog-master.xml"
 
       - name: Check Approval
-        if: ${{ github.event.inputs.approve_changes == 'no' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.approve_changes == 'no' }}
         run: |
           echo "Changes not approved. Stopping deployment."
           exit 1
 
       - name: Apply Liquibase Changes
-        if: ${{ github.event.inputs.approve_changes == 'yes' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.approve_changes == 'yes' || github.event_name == 'push' }}
         run: |
           echo "Applying Liquibase changes to the database."
           ./gradlew update
