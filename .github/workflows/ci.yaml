@@ -72,9 +72,9 @@ jobs:
           else
             echo "$FILE_COUNT SQL file(s) found for linting."
 
-            # Run sql-lint on all found SQL files and capture the output
+            # Run sql-lint on all found SQL files and capture both stdout and stderr
             echo "Running the sql-lint command."
-            OUTPUT=$(sql-lint $SQL_FILES)
+            OUTPUT=$(sql-lint $SQL_FILES 2>&1)  # Capture both stdout and stderr
             echo "Result of sql-lint command:"
             echo "$OUTPUT"
 
@@ -84,6 +84,7 @@ jobs:
               exit 1
             fi
           fi
+      
 
       #      - name: Lint SQL Files
 #        run: |
