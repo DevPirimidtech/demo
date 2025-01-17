@@ -61,7 +61,7 @@ jobs:
       - name: Install SQLLint
         run: npm install -g sql-lint
 
-      - name: Validate SQL Files with Linter
+      - name: Lint SQL Files
         run: |
           OUTPUT=$(sql-lint src/main/resources/db/**/*.sql)
           echo "$OUTPUT"
