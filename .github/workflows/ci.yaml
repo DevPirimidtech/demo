@@ -61,7 +61,7 @@ jobs:
       - name: Install SQLLint
         run: npm install -g sql-lint
 
-      - name: Lint SQL Files
+      - name: Validate SQL Files with Linter
         run: |
           OUTPUT=$(sql-lint src/main/resources/db/**/*.sql)
           echo "$OUTPUT"
@@ -69,7 +69,6 @@ jobs:
             echo "SQL Linting failed. Stopping the build."
             exit 1
           fi
-      
 
       - name: Build Application
         run: ./gradlew clean build --info
