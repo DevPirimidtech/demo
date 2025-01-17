@@ -69,6 +69,7 @@ jobs:
             echo "SQL Linting failed. Stopping the build."
             exit 1
           fi
+      
 
       - name: Build Application
         run: ./gradlew clean build --info
