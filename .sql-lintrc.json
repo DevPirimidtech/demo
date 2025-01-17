@@ -1,0 +1,9 @@
+{
+  "dialect": "postgresql",
+  "rules": {
+    "no-missing-semicolon": true,
+    "no-duplicate-columns": true,
+    "no-reserved-keywords": true,
+    "no-trailing-whitespace": true
+  }
+}
