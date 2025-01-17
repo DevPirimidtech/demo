@@ -62,26 +62,7 @@ jobs:
         run: pip install sqlfluff
 
       - name: Lint a Single SQL File with SQLFluff
-        run: |
-          echo "Linting file: src/main/resources/db/changelog/changelog1.sql"
-
-          # Run SQLFluff and capture output
-          OUTPUT=$(sqlfluff lint src/main/resources/db/changelog/changelog1.sql --dialect=postgres 2>&1)
-          LINT_EXIT_CODE=$?
-
-          echo "SQLFluff Output:"
-          echo "$OUTPUT"
-
-          # Check if linting failed
-          if [ $LINT_EXIT_CODE -ne 0 ]; then
-            echo "SQLFluff Linting failed for src/main/resources/db/changelog/changelog1.sql."
-            echo "Error details:"
-            echo "$OUTPUT"
-            exit 1
-          else
-            echo "SQLFluff Linting passed for src/main/resources/db/changelog/changelog1.sql."
-          fi
-      
+        run: sqlfluff lint src/main/resources/db/changelog/changelog1.sql --dialect=postgres
 
       - name: Build Application
         run: ./gradlew clean build --info
