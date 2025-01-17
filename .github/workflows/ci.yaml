@@ -61,8 +61,36 @@ jobs:
       - name: Install SQLFluff
         run: pip install sqlfluff
 
-      - name: Lint a Single SQL File with SQLFluff
-        run: sqlfluff lint src/main/resources/db/changelog/changelog1.sql --dialect=postgres
+      - name: Lint All SQL Files with SQLFluff
+        run: |
+          echo "Searching for SQL files in src/main/resources/db/changelog..."
+          SQL_FILES=$(find src/main/resources/db/changelog -name "*.sql")
+
+          if [ -z "$SQL_FILES" ]; then
+            echo "No SQL files found for linting."
+            exit 0
+          fi
+
+          echo "SQL files found:"
+          echo "$SQL_FILES"
+
+          # Initialize a flag to track if any file fails
+          LINT_FAILED=false
+
+          # Loop through each SQL file and lint
+          for SQL_FILE in $SQL_FILES; do
+            echo "Linting file: $SQL_FILE"
+            sqlfluff lint "$SQL_FILE" --dialect=postgres || LINT_FAILED=true
+          done
+
+          # If any linting failed, exit with an error
+          if [ "$LINT_FAILED" = true ]; then
+            echo "One or more SQL files failed linting. Check the errors above."
+            exit 1
+          else
+            echo "All SQL files passed linting. 🎉"
+          fi
+      
 
       - name: Build Application
         run: ./gradlew clean build --info
