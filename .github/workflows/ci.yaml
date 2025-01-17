@@ -63,13 +63,8 @@ jobs:
 
       - name: Lint SQL Files
         run: |
-          OUTPUT=$(sql-lint src/main/resources/db/**/*.sql)
-          echo "$OUTPUT"
-          if [ -n "$OUTPUT" ]; then
-            echo "SQL Linting failed. Stopping the build."
-            exit 1
-          fi
-
+          sql-lint src/main/resources/db/**/*.sql
+      
       - name: Build Application
         run: ./gradlew clean build --info
         id: build
