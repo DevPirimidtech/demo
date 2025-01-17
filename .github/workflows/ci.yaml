@@ -58,6 +58,14 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
+      - name: Install SQLLint
+        run: npm install -g sql-lint
+
+      - name: Lint SQL Files
+        run: |
+          sql-lint src/main/resources/db/**/*.sql
+        id: lint_sql
+
       - name: Build Application
         run: ./gradlew clean build --info
         id: build
