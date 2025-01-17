@@ -63,12 +63,28 @@ jobs:
 
       - name: Lint SQL Files
         run: |
-          OUTPUT=$(sql-lint src/main/resources/db/changelog/*.sql)
-          echo "$OUTPUT"
-          if [ -n "$OUTPUT" ]; then
-            echo "SQL Linting failed. Stopping the build."
-            exit 1
+          SQL_FILES=$(find src/main/resources/db/changelog -name "*.sql")
+          if [ -z "$SQL_FILES" ]; then
+            echo "No SQL files found for linting."
+          else
+            # Run sql-lint on all the found SQL files
+            OUTPUT=$(sql-lint $SQL_FILES)
+            echo "$OUTPUT"
+            if [ -n "$OUTPUT" ]; then
+              echo "SQL Linting failed. Stopping the build."
+              exit 1
+            fi
           fi
+      
+
+      #      - name: Lint SQL Files
+#        run: |
+#          OUTPUT=$(sql-lint src/main/resources/db/changelog/changelog1.sql)
+#          echo "$OUTPUT"
+#          if [ -n "$OUTPUT" ]; then
+#            echo "SQL Linting failed. Stopping the build."
+#            exit 1
+#          fi
 
       - name: Build Application
         run: ./gradlew clean build --info
