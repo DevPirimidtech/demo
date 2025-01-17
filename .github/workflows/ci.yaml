@@ -63,44 +63,43 @@ jobs:
 
       - name: Lint SQL Files with SQLFluff
         run: |
+          echo "Starting SQL linting..."
+
           # Find all SQL files
           SQL_FILES=$(find src/main/resources/db/changelog -name "*.sql")
-          FILE_COUNT=$(echo "$SQL_FILES" | wc -w)  # Count the number of files
+          FILE_COUNT=$(echo "$SQL_FILES" | wc -w)
 
           if [ "$FILE_COUNT" -eq 0 ]; then
             echo "No SQL files found for linting."
           else
             echo "$FILE_COUNT SQL file(s) found for linting."
 
-            # Loop through each SQL file and run sqlfluff individually
+            # Loop through each SQL file and run sqlfluff
             for SQL_FILE in $SQL_FILES; do
               echo "Linting file: $SQL_FILE"
 
-              # Redirect both stdout and stderr to capture all output
+              # Run sqlfluff lint, force stdout and stderr into separate logs
               OUTPUT=$(sqlfluff lint "$SQL_FILE" --dialect=postgres 2>&1)
+              echo "$OUTPUT" > sqlfluff_output.log
+              echo "Captured Output:"; cat sqlfluff_output.log
+
               LINT_EXIT_CODE=$?
-
-              echo "Result of SQLFluff lint command for $SQL_FILE:"
-              echo "$OUTPUT"
-
-              # If sqlfluff fails (non-zero exit code), stop the build and print errors
               if [ $LINT_EXIT_CODE -ne 0 ]; then
                 echo "SQL Fluff Linting failed for $SQL_FILE (exit code: $LINT_EXIT_CODE)."
                 echo "Stopping the build."
+                cat sqlfluff_output.log  # Print captured log
                 exit 1
               fi
 
-              # Optionally, check for specific error messages in the output
+              # Optionally, look for specific error patterns
               if echo "$OUTPUT" | grep -qi "error\|violation"; then
                 echo "SQL Fluff Linting found issues in the SQL file $SQL_FILE."
-                echo "Error output: $OUTPUT"
+                cat sqlfluff_output.log
                 echo "Stopping the build."
                 exit 1
               fi
             done
           fi
-      
-      
 
       - name: Build Application
         run: ./gradlew clean build --info
