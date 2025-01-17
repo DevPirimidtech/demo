@@ -62,7 +62,13 @@ jobs:
         run: npm install -g sql-lint
 
       - name: Lint SQL Files
-        run: sql-lint src/main/resources/db/**/*.sql
+        run: |
+          OUTPUT=$(sql-lint src/main/resources/db/**/*.sql)
+          echo "$OUTPUT"
+          if echo "$OUTPUT" | grep -q "Unable to lint"; then
+            echo "SQL Linting failed. Stopping the build."
+            exit 1
+          fi
         id: lint_sql
 
       - name: Build Application
