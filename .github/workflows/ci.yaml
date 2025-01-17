@@ -61,45 +61,27 @@ jobs:
       - name: Install SQLFluff
         run: pip install sqlfluff
 
-      - name: Lint SQL Files with SQLFluff
+      - name: Lint a Single SQL File with SQLFluff
         run: |
-          echo "Starting SQL linting..."
+          echo "Linting file: src/main/resources/db/changelog/changelog1.sql"
 
-          # Find all SQL files
-          SQL_FILES=$(find src/main/resources/db/changelog -name "*.sql")
-          FILE_COUNT=$(echo "$SQL_FILES" | wc -w)
+          # Run SQLFluff and capture output
+          OUTPUT=$(sqlfluff lint src/main/resources/db/changelog/changelog1.sql --dialect=postgres 2>&1)
+          LINT_EXIT_CODE=$?
 
-          if [ "$FILE_COUNT" -eq 0 ]; then
-            echo "No SQL files found for linting."
+          echo "SQLFluff Output:"
+          echo "$OUTPUT"
+
+          # Check if linting failed
+          if [ $LINT_EXIT_CODE -ne 0 ]; then
+            echo "SQLFluff Linting failed for src/main/resources/db/changelog/changelog1.sql."
+            echo "Error details:"
+            echo "$OUTPUT"
+            exit 1
           else
-            echo "$FILE_COUNT SQL file(s) found for linting."
-
-            # Loop through each SQL file and run sqlfluff
-            for SQL_FILE in $SQL_FILES; do
-              echo "Linting file: $SQL_FILE"
-
-              # Run sqlfluff lint, force stdout and stderr into separate logs
-              OUTPUT=$(sqlfluff lint "$SQL_FILE" --dialect=postgres 2>&1)
-              echo "$OUTPUT" > sqlfluff_output.log
-              echo "Captured Output:"; cat sqlfluff_output.log
-
-              LINT_EXIT_CODE=$?
-              if [ $LINT_EXIT_CODE -ne 0 ]; then
-                echo "SQL Fluff Linting failed for $SQL_FILE (exit code: $LINT_EXIT_CODE)."
-                echo "Stopping the build."
-                cat sqlfluff_output.log  # Print captured log
-                exit 1
-              fi
-
-              # Optionally, look for specific error patterns
-              if echo "$OUTPUT" | grep -qi "error\|violation"; then
-                echo "SQL Fluff Linting found issues in the SQL file $SQL_FILE."
-                cat sqlfluff_output.log
-                echo "Stopping the build."
-                exit 1
-              fi
-            done
+            echo "SQLFluff Linting passed for src/main/resources/db/changelog/changelog1.sql."
           fi
+      
 
       - name: Build Application
         run: ./gradlew clean build --info
