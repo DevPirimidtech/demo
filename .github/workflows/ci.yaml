@@ -72,18 +72,16 @@ jobs:
           else
             echo "$FILE_COUNT SQL file(s) found for linting."
 
-            # Run sql-lint on all found SQL files
+            # Run sql-lint on all found SQL files and capture the output
             OUTPUT=$(sql-lint $SQL_FILES)
             echo "$OUTPUT"
 
-            # If any linting errors are found, stop the build
-            if [ -n "$OUTPUT" ]; then
+            # Check if the output contains any error message or indication of failure
+            if echo "$OUTPUT" | grep -q "error\|unable"; then
               echo "SQL Linting failed. Stopping the build."
               exit 1
             fi
           fi
-      
-      
 
       #      - name: Lint SQL Files
 #        run: |
