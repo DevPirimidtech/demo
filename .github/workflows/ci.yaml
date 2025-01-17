@@ -64,6 +64,7 @@ jobs:
       - name: Lint SQL Files
         run: |
           sql-lint src/main/resources/db/**/*.sql
+        continue-on-error: false
         id: lint_sql
 
       - name: Build Application
