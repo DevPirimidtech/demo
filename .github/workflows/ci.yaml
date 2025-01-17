@@ -63,7 +63,7 @@ jobs:
 
       - name: Lint SQL Files
         run: |
-          OUTPUT=$(sql-lint src/main/resources/db/changelog/changelog2.sql)
+          OUTPUT=$(sql-lint src/main/resources/db/changelog/*.sql)
           echo "$OUTPUT"
           if [ -n "$OUTPUT" ]; then
             echo "SQL Linting failed. Stopping the build."
