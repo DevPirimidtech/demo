@@ -68,6 +68,7 @@ jobs:
             echo "No SQL files found for linting."
           else
             # Run sql-lint on all the found SQL files
+            echo "SQL files found for linting."
             OUTPUT=$(sql-lint $SQL_FILES)
             echo "$OUTPUT"
             if [ -n "$OUTPUT" ]; then
