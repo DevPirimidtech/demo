@@ -14,13 +14,6 @@ on:
         options:
           - "yes"
           - "no"
-
-env:
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: postgres
-  POSTGRES_DB: demo_cicd
-  CHANGELOG_FILE: src/main/resources/db/changelog/db.changelog-master.xml
-
 jobs:
   build:
     runs-on: ubuntu-latest
