@@ -78,6 +78,14 @@ jobs:
       - name: Run Unit and Integration Tests
         run: ./gradlew test
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h 192.168.1.62 -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 5
+          done
+          echo "PostgreSQL is ready!"
+
       - name: Preview Liquibase SQL Changes
         id: liquibase_preview
         run: |
