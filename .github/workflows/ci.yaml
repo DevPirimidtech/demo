@@ -78,13 +78,14 @@ jobs:
       - name: Run Unit and Integration Tests
         run: ./gradlew test
 
-      - name: Wait for PostgreSQL to be ready
+      - name: Check if PostgreSQL is reachable
         run: |
-          until psql -h 192.168.1.62 -p 5432 -U postgres -c '\q'; do
-            echo "Waiting for PostgreSQL to be ready..."
-            sleep 5
-          done
-          echo "PostgreSQL is ready!"
+          echo "Testing connection to PostgreSQL at 192.168.1.62"
+          ping -c 4 192.168.1.62 || exit 1
+          echo "Testing connection to PostgreSQL port 5432"
+          telnet 192.168.1.62 5432 || exit 1
+          echo "Connection to PostgreSQL is successful"
+      
 
       - name: Preview Liquibase SQL Changes
         id: liquibase_preview
